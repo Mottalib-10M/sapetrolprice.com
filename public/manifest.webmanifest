@@ -1,0 +1,21 @@
+{
+ "name": "SA Petrol Price",
+ "short_name": "SA Petrol Price",
+ "description": "South African petrol, diesel and paraffin prices: next month's estimate from Central Energy Fund data, what a litre is made of, and the repo and prime rates.",
+ "start_url": "/en/",
+ "display": "standalone",
+ "background_color": "#ffffff",
+ "theme_color": "#007749",
+ "icons": [
+  {
+   "src": "/icon-192.png",
+   "sizes": "192x192",
+   "type": "image/png"
+  },
+  {
+   "src": "/icon-512.png",
+   "sizes": "512x512",
+   "type": "image/png"
+  }
+ ]
+}

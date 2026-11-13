@@ -1,0 +1,13 @@
+{
+ "accent": "#007749",
+ "symbol": "R",
+ "variants": [
+  {
+   "file": "og-en.png",
+   "title": "Petrol price next month\nSouth Africa",
+   "subtitle": "Estimate from CEF data · price structure · tank cost · repo and prime",
+   "badge": "Central Energy Fund and SARB figures, dated",
+   "brand": "SA Petrol Price"
+  }
+ ]
+}

@@ -1,0 +1,30 @@
+---
+import PageLayout from '../../layouts/PageLayout.astro';
+import LegalIdentity from '../../components/LegalIdentity.astro';
+import { route } from '../../i18n/routes';
+import { AUTHOR_NAME, AUTHOR_DESC, CONTACT_EMAIL } from '../../data/site-config';
+import { VALUE } from '../../content/home';
+import { profilePageSchema, breadcrumbSchema } from '../../lib/seo';
+const lang = 'en';
+const path = route('about', lang);
+const title = 'SA Petrol Price 2026: Who Publishes These Fuel Estimates';
+const description = 'SA Petrol Price in 2026: who publishes the petrol, diesel and interest rate estimates, the CEF and Reserve Bank data behind them, and what the site never sells.';
+---
+<PageLayout title={title} description={description} lang={lang} jsonLd={[profilePageSchema({ path, lang }), breadcrumbSchema([{ name: 'Home', path: route('home', lang) }, { name: 'About', path }])]} breadcrumbs={[{ label: 'About' }]}>
+  <article class="prose prose-slate max-w-none prose-headings:font-serif">
+    <h1>About SA Petrol Price</h1>
+    <p>{AUTHOR_DESC.en}</p>
+    <h2>Why these fuel estimates exist</h2>
+    <p>Every month, motorists in South Africa want to know whether petrol and diesel will go up or down on the first Wednesday. The answer sits in documents the Central Energy Fund publishes as PDF files, and most articles quote a figure without its date or its method, sometimes two different figures on the same day.</p>
+    <p>{VALUE}</p>
+    <h2>Who publishes it</h2>
+    <p>The site is published by {AUTHOR_NAME}, a company that builds calculators on public data. It is an independent site: not the Central Energy Fund, the Department of Mineral and Petroleum Resources, the National Treasury or the South African Reserve Bank. It sells no fuel, loan or card, takes no commission, carries no affiliate link and asks for no contact details.</p>
+    <LegalIdentity lang={lang} />
+    <h2>What it relies on</h2>
+    <p>The Daily Basic Fuel Price sheets and the monthly media statements of the Central Energy Fund for 2026, with the price structure and the price history since April 2024; the media statement of the Department on the change of 4 November 2026; the policy rate, prime rate and market rates published by the South African Reserve Bank, and its calendar of Monetary Policy Committee meetings.</p>
+    <h2>What it leaves out</h2>
+    <p>Prices at individual stations, the diesel and paraffin margins of each retailer, an LPG forecast, and any prediction of the Reserve Bank’s decisions. The <a href={route('method', lang)}>method page</a> lists every assumption and the <a href={route('editorial', lang)}>editorial policy</a> explains corrections.</p>
+    <h2>Contact</h2>
+    <p><a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>, for a figure that changed or a document we read wrong.</p>
+  </article>
+</PageLayout>

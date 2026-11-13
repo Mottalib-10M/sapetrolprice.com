@@ -1,0 +1,5 @@
+# Central Energy Fund (SOC) Ltd : publie pour le ministère (DMPR) le prix de base quotidien et les communiqués mensuels de prix des carburants
+cefgroup.co.za
+
+# South African Reserve Bank : banque centrale, fixe le taux directeur (repo) et publie le taux prime
+resbank.co.za

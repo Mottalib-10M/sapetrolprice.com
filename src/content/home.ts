@@ -1,0 +1,76 @@
+/** Text of the home page (the pillar). Every figure comes from the kit. */
+import { KIT as K } from '../lib/kit';
+import type { FAQ, Helpers } from '../lib/page-types';
+
+const E = K.E, L = E.LATEST, F = K.F;
+const NEXT = K.day(E.NEXT_CHANGE);
+const TANK = K.EX.litres;
+const p95 = F.p95, p93 = F.p93, d50 = F.d50, ip = F.ipw;
+const avgF = E.forecast({ product: 'p95', method: 'average' });
+const keep = E.forecast({ product: 'p95', reliefEnds: false });
+const hist = E.HISTORY, first = hist[0], peak = hist.reduce((a, b) => (b.p95[0] > a.p95[0] ? b : a));
+const S = K.S.p95;
+
+/** The value sentence (RECETTE §2.4), shown on the home page, the About page and the method page. */
+export const VALUE = `News sites announce next month's petrol price from the same Central Energy Fund figures, often with two different numbers on the same day, and none shows the arithmetic. This site does it in the open: the average over- or under-recovery the CEF publishes each business day, projected to the close of the pricing window, rounded to the cent like the official statement, plus the levy changes already announced. Each figure carries its date, each assumption can be changed, and the same method is tested against every month of 2026.`;
+
+export const HOME = {
+  title: 'Petrol Price South Africa: December 2026 Estimates',
+  description: 'Petrol price in South Africa for December 2026: estimate from Central Energy Fund data for 95, 93, diesel and paraffin, tank cost, levies and the repo rate.',
+  h1: 'Petrol price in South Africa next month, worked out from CEF data',
+  /** The answer in one sentence, one figure. */
+  answer: `Petrol price in South Africa on ${NEXT}: 95 about ${K.rpl(p95.next)} in Gauteng (${K.dr(p95.change)}), diesel ${K.dr(d50.change)} as the levy relief ends.`,
+  resume: `The petrol price in South Africa changes on the first Wednesday of each month, by the average gap between the price at the pump and the landed cost of fuel over the previous weeks. The Central Energy Fund (CEF) publishes that gap every business day. By ${K.day(L.window[1])}, after ${E.DAYS_SO_FAR} business days of the window that opened on ${K.day(L.window[0])}, petrol 95 showed an average over-recovery of ${K.dc(L.average.p95)} a litre, and ${K.dc(L.day.p95)} on the latest day: the pump price is above cost, so it should come down. Carried to the close of the window, around ${K.day(E.WINDOW_END_ASSUMED)}, the gap gives a cut of about ${K.dc(-p95.roundedRecovery)}. The temporary fuel levy relief of ${K.rc(E.RELIEF.petrol / 100)} a litre on petrol and ${K.rc(E.RELIEF.diesel / 100)} on diesel ends on 1 December, which adds those amounts back. Net result: 95 at about ${K.rpl(p95.next)} in Gauteng and ${K.rpl(p95.nextCoast)} at the coast, 93 at ${K.rpl(p93.next)}, diesel 500 ppm wholesale up ${K.dc(d50.change)}. A ${TANK}-litre tank of 95 would cost ${K.rand(K.tank(TANK, p95.next))} instead of ${K.rand(K.tank(TANK, p95.now))}.`,
+  faqs: [
+    { q: 'When is the next petrol price change in South Africa?', a: `On Wednesday ${NEXT}, the first Wednesday of the month. The Department of Mineral and Petroleum Resources announces the official figures a few days before, through a media statement prepared by the Central Energy Fund. The estimate on this page uses the CEF daily figures until then; once the statement is out, its figures replace any estimate.` },
+    { q: 'Why does diesel go up in December when petrol comes down?', a: `Because the levy relief is twice as large on diesel. The over-recovery to date is ${K.dc(L.average.d50)} on 500 ppm diesel against ${K.dc(L.average.p95)} on petrol 95, and the relief that ends is ${K.dc(E.RELIEF.diesel)} on diesel against ${K.dc(E.RELIEF.petrol)} on petrol. On diesel the levy coming back outweighs the over-recovery; on petrol it does not.` },
+    { q: 'How reliable is a petrol price prediction made in the middle of the month?', a: `Tested on the nine windows of 2026 that have a sheet near mid-window, the method used here missed the final petrol 95 figure by ${K.dc(K.BT.mae95)} a litre on average, against ${K.dc(K.BT.maeAvg95)} when the average to date is simply carried forward. A large move in oil or the rand in the last two weeks can still change the result by more, as in the windows that set the August and November 2026 prices.` },
+    { q: 'Is the diesel price on this site what I pay at the pump?', a: `No. Only the petrol pump price is regulated in South Africa. For diesel the Department sets a wholesale price, ${K.rpl(d50.now)} a litre for 500 ppm in Gauteng until 1 December, and each station adds its own margin. The change from month to month is the same, so the estimated ${K.dc(d50.change)} applies to your pump too.` },
+    { q: 'What happens if the fuel levy relief is extended?', a: `Then nothing is added back and the full over-recovery passes into the price. Petrol 95 would fall by about ${K.dc(-keep.change)} to ${K.rpl(keep.next)} in Gauteng, and diesel would fall as well. The Minister of Finance announced it in the Medium-Term Budget Policy Statement of 21 October 2026 for 4 November to 1 December only; the calculator tests both cases.` },
+    { q: 'Does this site sell fuel, loans or cards?', a: 'No. SA Petrol Price is published by Radif Partners, an independent company. It is not the Central Energy Fund, the Department or the Reserve Bank, has no partner fuel company, bank or lender, and asks for no name, number or e-mail address. The calculators run in your browser.' },
+  ] as FAQ[],
+  /** Right under the calculator: how to read the estimate. */
+  start: (h: Helpers) => `
+<h2>How to read the estimate for ${K.mon(E.NEXT_CHANGE)}</h2>
+<p>The big figure is the Gauteng price of the fuel you picked, from ${NEXT}. Petrol is the pump price every station in Gauteng must charge. Diesel and paraffin are wholesale prices: the station adds a margin, but it moves by the same amount.</p>
+<p>The first line under it is the over-recovery so far. When it is positive, the price at the pump has been higher than the landed cost of fuel, and the price comes down next month by that amount. A negative figure, an under-recovery, means the opposite.</p>
+<p>The line about the levy relief matters this month. The Minister of Finance cut the general fuel levy from ${K.dc(E.LEVY_FULL.petrol)} to ${K.dc(E.LEVY_NOW.petrol)} a litre on petrol and from ${K.dc(E.LEVY_FULL.diesel)} to ${K.dc(E.LEVY_NOW.diesel)} on diesel for four weeks only. If it ends as announced, those cents come back on ${NEXT}. The ${h.a('fuel-levy', 'fuel levy page')} shows what the levy costs you in a year.</p>
+`,
+  /** Open sections: how the price is set, then the figures of the month. */
+  guide: (h: Helpers) => `
+<h2>Petrol price in South Africa: how next month's price is set</h2>
+<p>The price of petrol, diesel and paraffin is regulated. Each month the Minister of Mineral and Petroleum Resources adjusts it on the first Wednesday, using a formula the Central Energy Fund applies for the Department. The heart of the formula is the Basic Fuel Price (BFP): what a litre would cost delivered to a South African port, at international prices, freight and insurance, converted at the day's exchange rate.</p>
+<p>Every business day the CEF compares that day's BFP with the BFP built into the current pump price, ${K.dc(L.contribution.p95)} a litre for 95 this month. The difference is the over- or under-recovery of the day. At the end of the window, about four weeks, the average of those daily figures is rounded to the nearest cent and becomes the change. As the statement of 30 October 2026 puts it, the over- or under-recovery of one month "will be corrected in the following month".</p>
+<p>On top of that, the Minister passes on changes decided elsewhere: the fuel levy set by the National Treasury, the slate levy that clears past under-recoveries, and once a year the margins and transport tariffs. The ${h.a('basic-fuel-price', 'Basic Fuel Price page')} explains the daily sheet line by line, and the ${h.a('what-is-in-a-litre-of-petrol', 'litre breakdown')} shows where each of the ${K.rpl(S.total)} goes.</p>
+<h2>December 2026: what the CEF figures say so far</h2>
+<p>From ${K.day(L.window[0])} to ${K.day(L.window[1])}, international product prices sat below the level built into November's prices: of the ${K.dc(L.average.p95)} over-recovery on 95, ${K.dc(L.fromProduct.p95)} comes from product prices and ${K.dc(L.fromRand.p95)} from the exchange rate (R${K.dec(L.zarusd)} to the dollar on ${K.day(L.date)}). Every fuel shows an over-recovery, the largest on petrol. The table carries each one to the close of the window, then adds the levy relief that ends.</p>
+${h.table(['Fuel (Gauteng)', 'Now', 'Over-recovery to date', 'Estimated change', `From ${NEXT}`], [
+    ['Petrol 95 (pump)', K.rpl(p95.now), K.dc(p95.averageSoFar), K.dc(p95.change), K.rpl(p95.next)],
+    ['Petrol 93 (pump)', K.rpl(p93.now), K.dc(p93.averageSoFar), K.dc(p93.change), K.rpl(p93.next)],
+    ['Diesel 500 ppm (wholesale)', K.rpl(d50.now), K.dc(d50.averageSoFar), K.dc(d50.change), K.rpl(d50.next)],
+    ['Diesel 50 ppm (wholesale)', K.rpl(F.d005.now), K.dc(F.d005.averageSoFar), K.dc(F.d005.change), K.rpl(F.d005.next)],
+    ['Paraffin (wholesale)', K.rpl(ip.now), K.dc(ip.averageSoFar), K.dc(ip.change), K.rpl(ip.next)],
+  ], `Central Energy Fund daily sheet of ${K.day(L.date)}; window assumed to close on ${K.day(E.WINDOW_END_ASSUMED)}; levy relief ending on 1 December.`, ['l', 'r', 'r', 'r', 'r'])}
+<p>Two figures in the press can differ from these for plain reasons. Some articles give the over-recovery before the levy relief, which suggests a cut of ${K.dc(-p95.roundedRecovery)} on petrol. Others carry the average to date forward instead of the latest days, which gives ${K.rpl(avgF.next)} for 95. Here both steps are shown, and the ${h.a('petrol-price-december-2026', 'December 2026 page')} lets you change each assumption.</p>
+${h.mini('tank', { t: 'What your tank costs now and in December', p: ['litres'], d: { litres: TANK } })}
+`,
+  /** Folded sections (<details>, content kept in the HTML). */
+  folds: [
+    { id: 'accuracy', title: 'How close a mid-month estimate came in 2026', html: (h: Helpers) => `
+<p>An estimate is only worth its track record. For each window of 2026 with a CEF sheet near the middle, the table compares two ways of estimating the final over- or under-recovery of petrol 95 with the figure the statement finally used. Method A carries the average to date forward; method B, used on this site, assumes the remaining days look like the latest one.</p>
+${h.table(['Price change of', 'Sheet of', 'A: average to date', 'B: latest day carried', 'Final figure'], K.BT.p95.map((r) => [K.day(r.effective), K.day(r.sheet), K.dc(r.avg), K.dc(r.projected), K.dc(r.final)]), 'Petrol 95, cents a litre; + over-recovery (price falls), - under-recovery (price rises). CEF daily sheets and statements of 2026.', ['l', 'l', 'r', 'r', 'r'])}
+<p>Method B missed by ${K.dc(K.BT.mae95)} on average, method A by ${K.dc(K.BT.maeAvg95)}. The largest misses of method B came with the windows that set the August and November 2026 prices, when the daily gap shrank fast in their second half. Read the estimate as a direction and an order of size, accurate to a few tens of cents in a quiet month, not as the official price. The ${h.a('method', 'method page')} gives the diesel test as well.</p>
+` },
+    { id: 'history', title: 'Petrol price history since April 2024', html: (h: Helpers) => `
+<p>Petrol 95 in Gauteng cost ${K.rpl(first.p95[0])} a litre on ${K.day(first.date)}. It reached its highest point of the period, ${K.rpl(peak.p95[0])}, on ${K.day(peak.date)}, after the oil shock of March 2026 and the end of the first levy relief. The ${h.a('petrol-price-history', 'history page')} gives every change since April 2024 for petrol, diesel, paraffin and gas, and compares any month with today.</p>
+${h.mini('history', { t: 'Then and now', p: ['when'] })}
+` },
+    { id: 'litre', title: 'What a litre of petrol 95 pays for', html: (h: Helpers) => `
+<p>Of the ${K.rpl(S.total)} a litre of 95 costs in Gauteng this month, ${K.rpl(S.bfp)} is the fuel itself, landed. Taxes and levies take ${K.rpl(S.taxes + S.slate)}: the general fuel levy (${K.dc(S.fuelLevy)}, reduced this month), the Road Accident Fund levy (${K.dc(S.raf)}) and the slate levy (${K.dc(S.slate)}). Margins for the station and the wholesaler come to ${K.rpl(S.retail + S.wholesale)}, and storage and transport to Gauteng to ${K.rpl(S.storage + S.zone)}. No VAT is charged on petrol. The ${h.a('what-is-in-a-litre-of-petrol', 'breakdown page')} works it out for your own litres.</p>
+` },
+    { id: 'rates', title: 'Repo rate, prime and your bond', html: (h: Helpers) => `
+<p>The Reserve Bank's repo rate is ${K.rate(E.REPO)} since ${K.day(E.REPO_STEPS[E.REPO_STEPS.length - 1].from)}, and prime, which banks set at repo plus ${K.dec(E.PRIME - E.REPO)} points, is ${K.rate(E.PRIME)}. The Monetary Policy Committee announces its next decision on ${K.day(E.MPC_NEXT[0])}. On a ${K.rand(K.EX.bond)} bond over ${K.EX.years} years at prime, a move of 0.25% changes the instalment by about ${K.rand(E.instalment(K.EX.bond, E.PRIME + 0.25, K.EX.years) - E.instalment(K.EX.bond, E.PRIME, K.EX.years))} a month. Fuel and the rand feed inflation, which is what the committee watches: the ${h.a('repo-rate', 'repo rate page')} and the ${h.a('bond-repayment', 'bond calculator')} take it from there.</p>
+` },
+  ],
+  sources: ['cef_daily', 'cef_monthly', 'cef_2026', 'dmpr_prices', 'dmpr_structure', 'dmpr_nov', 'sarb_mpc', 'sarb_rates'],
+};

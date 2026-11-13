@@ -1,0 +1,53 @@
+{
+  "_lisezmoi": "Registre des sources du site. Les chiffres eux-mêmes vivent dans cef.json (scripts/data/build-cef.py, documents du Central Energy Fund) et sarb.json (scripts/data/build-sarb.py, API publique de la SARB). Chaque document a été lu le 2026-11-13 ; les URL ci-dessous répondaient ce jour-là.",
+  "year": 2026,
+  "retrieved_at": "2026-11-13",
+  "valid_from": "2026-11-04",
+  "valid_to": "2026-12-01",
+  "sources": {
+    "cef_daily": {
+      "url": "https://cefgroup.co.za/daily-basic-fuel-price/",
+      "label": { "en": "Central Energy Fund: Daily Basic Fuel Price (over and under-recovery by product, each business day)" }
+    },
+    "cef_monthly": {
+      "url": "https://cefgroup.co.za/monthly-press-release/",
+      "label": { "en": "Central Energy Fund: monthly media statements on fuel price adjustments" }
+    },
+    "cef_2026": {
+      "url": "https://cefgroup.co.za/2026-3/",
+      "label": { "en": "Central Energy Fund: media statements of 2026, with Annexure 1 (price structure and history since April 2024)" }
+    },
+    "cef_paia": {
+      "url": "https://cefgroup.co.za/paia-and-popia/",
+      "label": { "en": "Central Energy Fund: PAIA manual (the monthly press release is a record available without request)" }
+    },
+    "dmpr_prices": {
+      "url": "https://www.dmpr.gov.za/Branches/Petroleum-Resources/Fuel-Prices",
+      "label": { "en": "Department of Mineral and Petroleum Resources: fuel prices" }
+    },
+    "dmpr_structure": {
+      "url": "https://www.dmpr.gov.za/Branches/Petroleum-Resources/Fuel-Price-Structure",
+      "label": { "en": "Department of Mineral and Petroleum Resources: fuel price structure" }
+    },
+    "dmpr_nov": {
+      "url": "https://www.dmpr.gov.za/Media-Centre/News/MEDIA-STATEMENT-MINISTER-OF-MINERAL-AND-PETROLEUM-RESOURCES-ANNOUNCES-FUEL-PRICE-ADJUSTMENTS-%7C-EFFECTIVE-04-NOVEMBER-2026",
+      "label": { "en": "Department of Mineral and Petroleum Resources: fuel price adjustments effective 4 November 2026" }
+    },
+    "treasury": {
+      "url": "https://www.treasury.gov.za/",
+      "label": { "en": "National Treasury: budget and Medium-Term Budget Policy Statement documents (fuel levy)" }
+    },
+    "sarb_mpc": {
+      "url": "https://www.resbank.co.za/en/home/what-we-do/monetary-policy/monetary-policy-committee",
+      "label": { "en": "South African Reserve Bank: Monetary Policy Committee and upcoming announcement dates" }
+    },
+    "sarb_rates": {
+      "url": "https://www.resbank.co.za/en/home/what-we-do/statistics/key-statistics/current-market-rates",
+      "label": { "en": "South African Reserve Bank: current market rates (policy rate, prime, treasury bills, JIBAR, ZARONIA)" }
+    },
+    "sarb_statements": {
+      "url": "https://www.resbank.co.za/en/home/publications/statements/mpc-statements",
+      "label": { "en": "South African Reserve Bank: statements of the Monetary Policy Committee" }
+    }
+  }
+}

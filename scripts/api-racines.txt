@@ -1,0 +1,2 @@
+# Racine de l'API publique de la SARB, appelée par scripts/data/build-sarb.py (séries MMRD002A, MMRD000A)
+https://custom.resbank.co.za/SarbWebApi/

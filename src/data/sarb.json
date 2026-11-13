@@ -1,0 +1,161 @@
+{
+ "_doc": "South African Reserve Bank figures read by scripts/data/build-sarb.py. Rates in percent. steps: date from which each rate applied, as published in the daily series.",
+ "built": "2026-11-13",
+ "api": "https://custom.resbank.co.za/SarbWebApi/WebIndicators/",
+ "mpcPage": "https://www.resbank.co.za/en/home/what-we-do/monetary-policy/monetary-policy-committee",
+ "repo": {
+  "code": "MMRD002A",
+  "steps": [
+   {
+    "from": "2023-01-03",
+    "rate": 7.0
+   },
+   {
+    "from": "2023-01-27",
+    "rate": 7.25
+   },
+   {
+    "from": "2023-03-31",
+    "rate": 7.75
+   },
+   {
+    "from": "2023-05-26",
+    "rate": 8.25
+   },
+   {
+    "from": "2024-09-20",
+    "rate": 8.0
+   },
+   {
+    "from": "2024-11-22",
+    "rate": 7.75
+   },
+   {
+    "from": "2025-01-31",
+    "rate": 7.5
+   },
+   {
+    "from": "2025-05-30",
+    "rate": 7.25
+   },
+   {
+    "from": "2025-08-01",
+    "rate": 7.0
+   },
+   {
+    "from": "2025-11-21",
+    "rate": 6.75
+   },
+   {
+    "from": "2026-05-29",
+    "rate": 7.0
+   },
+   {
+    "from": "2026-09-25",
+    "rate": 7.25
+   }
+  ],
+  "last": {
+   "date": "2026-11-12",
+   "rate": 7.25
+  }
+ },
+ "prime": {
+  "code": "MMRD000A",
+  "steps": [
+   {
+    "from": "2023-01-03",
+    "rate": 10.5
+   },
+   {
+    "from": "2023-01-27",
+    "rate": 10.75
+   },
+   {
+    "from": "2023-03-31",
+    "rate": 11.25
+   },
+   {
+    "from": "2023-05-26",
+    "rate": 11.75
+   },
+   {
+    "from": "2024-09-20",
+    "rate": 11.5
+   },
+   {
+    "from": "2024-11-22",
+    "rate": 11.25
+   },
+   {
+    "from": "2025-01-31",
+    "rate": 11.0
+   },
+   {
+    "from": "2025-05-30",
+    "rate": 10.75
+   },
+   {
+    "from": "2025-08-01",
+    "rate": 10.5
+   },
+   {
+    "from": "2025-11-21",
+    "rate": 10.25
+   },
+   {
+    "from": "2026-05-29",
+    "rate": 10.5
+   },
+   {
+    "from": "2026-09-25",
+    "rate": 10.75
+   }
+  ],
+  "last": {
+   "date": "2026-11-12",
+   "rate": 10.75
+  }
+ },
+ "market": {
+  "repo": {
+   "name": "SARB Policy Rate",
+   "date": "2026-11-12",
+   "rate": 7.25
+  },
+  "zaronia": {
+   "name": "Zaronia",
+   "date": "2026-11-11",
+   "rate": 7.095
+  },
+  "tbill91": {
+   "name": "Treasury bills - 91 day (tender rates)",
+   "date": "2026-11-11",
+   "rate": 7.15
+  },
+  "tbill364": {
+   "name": "Treasury bills - 364 day (tender rates)",
+   "date": "2026-11-11",
+   "rate": 7.34
+  },
+  "jibar3m": {
+   "name": "Jibar - 3 months",
+   "date": "2026-11-11",
+   "rate": 7.25
+  },
+  "prime": {
+   "name": "Prime lending rate",
+   "date": "2026-11-12",
+   "rate": 10.75
+  }
+ },
+ "mpcUpcoming": [
+  "2026-11-19",
+  "2027-01-28",
+  "2027-03-18",
+  "2027-05-27",
+  "2027-07-22",
+  "2027-09-29",
+  "2027-11-25"
+ ]
+}
