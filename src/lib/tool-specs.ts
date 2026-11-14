@@ -6,10 +6,10 @@
  */
 import type { ToolSpec, V, Input, ToolOut } from './tool-types';
 import { formatNumber } from './format';
-import { rand, rc, rpl, dc, dr, num, pct, day, monthName } from './fmt';
+import { rand, rc, rpl, dc, dr, cents, rec, effect, effectRow, moveWords, num, pct, day, monthName } from './fmt';
 import {
   forecast, PRODUCT_NAME, type Product, isPetrol, isDiesel, inForce, COAST_GAP, LAST_MONTH, PREV_MONTH, LATEST, NEXT_CHANGE, RELIEF, SMNRP_RATIO,
-  HISTORY, MONTHS, DAILIES, structureOf, tank, perKm, monthly, randEffect, instalment, interestTotal, PRIME, REPO, MPC_NEXT, MARKET, rateAt, PRIME_STEPS,
+  HISTORY, MONTHS, DAILIES, WINDOW_END_ASSUMED as WINDOW_END, structureOf, tank, perKm, monthly, randEffect, instalment, interestTotal, PRIME, REPO, MPC_NEXT, MARKET, rateAt, PRIME_STEPS,
 } from './engine/fuel';
 
 const n = (v: V, k: string) => Number(v[k]) || 0;
@@ -24,9 +24,9 @@ export const EX = { product: 'p95' as Product, litres: 50, l100: 8, kmDay: 40, d
 
 const PRODUCT_OPTS = (keys: Product[] = ['p95', 'p93', 'd50', 'd005', 'ipw']) => keys.map((k) => ({ value: k, label: PRODUCT_NAME[k] }));
 const PRODUCT = (def: Product = EX.product, keys?: Product[]): Input => ({ kind: 'select', id: 'fuel', label: 'Fuel', def, options: PRODUCT_OPTS(keys), help: 'Diesel, paraffin: wholesale price' });
-const LITRES = (def: number = EX.litres, label = 'Litres you buy'): Input => ({ id: 'litres', label, def, unit: 'l', max: 10000, help: 'A small car tank holds about 40 litres, a bakkie about 80' });
-const L100: Input = { id: 'l100', label: 'Consumption (litres per 100 km)', def: EX.l100, unit: 'l', max: 60, decimals: 1, help: 'On your car’s trip computer; a small car uses 6 to 7, a bakkie 9 to 12' };
-const ZONE: Input = { kind: 'select', id: 'zone', label: 'Where you fill up', def: 'inland', options: [{ value: 'inland', label: 'Gauteng (inland, zone 9C)' }, { value: 'coast', label: 'Coast (Durban, Cape Town, Gqeberha)' }], help: 'Other towns pay their own zone price, between the two' };
+const LITRES = (def: number = EX.litres, label = 'Litres you buy'): Input => ({ id: 'litres', label, def, unit: 'litres', max: 10000, help: 'A small car tank holds about 40 litres, a bakkie about 80' });
+const L100: Input = { id: 'l100', label: 'Consumption (litres per 100 km)', def: EX.l100, unit: 'litres', max: 60, decimals: 1, help: 'On your car’s trip computer; a small car uses 6 to 7, a bakkie 9 to 12' };
+const ZONE: Input = { kind: 'select', id: 'zone', label: 'Where you fill up', def: 'inland', options: [{ value: 'inland', label: 'Gauteng (inland)' }, { value: 'coast', label: 'Coast (Durban, Cape Town, Gqeberha)' }], help: 'Other towns pay their own zone price, between the Gauteng and the coast price' };
 const prod = (v: V) => (s(v, 'fuel') || EX.product) as Product;
 const basis = (p: Product) => (isPetrol(p) ? 'pump price' : 'wholesale price');
 /** Coast price is published for petrol 95, diesel 500 ppm and paraffin only. */
@@ -34,44 +34,66 @@ const hasCoast = (p: Product) => p === 'p95' || p === 'd50' || p === 'ipw';
 const zonePrice = (p: Product, zone: string, cpl: number) => (zone === 'coast' && hasCoast(p) ? cpl - COAST_GAP[p] : cpl);
 const zoneWord = (p: Product, zone: string) => (zone === 'coast' && hasCoast(p) ? 'coast' : zone === 'coast' ? 'Gauteng (no coast price is published for this grade)' : 'Gauteng');
 const NEXT = monthName(NEXT_CHANGE);
-const ASOF = `CEF data to ${day(LATEST.window[1])}`;
+const ASOF = `Central Energy Fund data to ${day(LATEST.window[1])}`;
 
 function spec(inputs: Input[], arg: Record<string, number | string>, run: (v: V) => ToolOut): ToolSpec {
   return { inputs: inputs.map((i) => (i.id in arg ? { ...i, def: arg[i.id] } as Input : i)), run };
 }
 type Arg = Record<string, number | string>;
 const MOVES = [-10, -5, 0, 5, 10].map((x) => ({ value: String(x), label: x === 0 ? 'No change (latest day holds)' : `${x > 0 ? '+' : ''}${x}% (${x > 0 ? 'dearer oil or weaker rand' : 'cheaper oil or stronger rand'})` }));
-const SLATES = [-50, -25, 0, 25, 50].map((x) => ({ value: String(x), label: x === 0 ? 'Unchanged' : `${x > 0 ? '+' : ''}${x}c a litre` }));
+const SLATES = [-50, -25, 0, 25, 50].map((x) => ({ value: String(x), label: x === 0 ? 'Unchanged' : `${x > 0 ? 'Up' : 'Down'} ${Math.abs(x)}c a litre` }));
 const BP = [-50, -25, 0, 25, 50].map((x) => ({ value: String(x), label: x === 0 ? 'No change' : `${x > 0 ? 'Hike' : 'Cut'} of ${Math.abs(x)} basis points (${formatNumber(Math.abs(x) / 100, 2)}%)` }));
+
+/**
+ * ONE figure for the month's move (naive testers 2026-11-14: "-232c" in big, then "+312c", "+382c over", "+150c"
+ * under it). The answer is the net change; each part below it says in words which way it pushes the price, and the
+ * parts add up to the change exactly. A recovery is the CEF's gap: positive = over-recovery = the price comes DOWN.
+ */
+export type Forecast = ReturnType<typeof forecast>;
+/** "Petrol 95 in Gauteng (inland) drops by R2.32 a litre on 2 December 2026, from R30.24 to R27.92 · coast R27.05" */
+export function answerLine(p: Product, f: Forecast): string {
+  const coast = hasCoast(p) ? `; at the coast (Durban, Cape Town, Gqeberha) ${rpl(f.nextCoast)}` : '';
+  return `${PRODUCT_NAME[p]} in Gauteng (inland) ${moveWords(f.change)} on ${day(NEXT_CHANGE)}, from ${rpl(f.now)} today (${dc(f.change)})${coast}.`;
+}
+/** The parts of the change, each with its own name and the direction it pushes the price; they add up to the change. */
+export function changeRows(f: Forecast): Array<[string, string]> {
+  return [
+    [`Why: fuel ${f.roundedRecovery >= 0 ? 'cheaper' : 'dearer'} to import than today’s price assumes (expected by ${day(WINDOW_END)})`, effectRow(-f.roundedRecovery)],
+    ...(f.levyEffect ? [['Temporary fuel tax cut ends', effectRow(f.levyEffect)] as [string, string]] : []),
+    ...(f.slate ? [['Slate levy change (your assumption)', effectRow(f.slate)] as [string, string]] : []),
+    [`Change on ${day(NEXT_CHANGE)}`, `${dc(f.change)} a litre`],
+  ];
+}
+/** Why the other figures of the page and the press differ from the one to keep. */
+export function whyOthers(f: Forecast): string {
+  return `The figure to keep is the change of ${dc(f.change)}. The CEF’s ${rec(f.averageSoFar)} (average so far) and ${rec(f.latestDay)} (latest day) are steps towards the ${rec(f.roundedRecovery)} expected by ${day(WINDOW_END)}${f.levyEffect ? `; a move of ${dc(-f.roundedRecovery)} quoted in the press leaves out the fuel tax cut ending` : ''}.`;
+}
 
 const SPECS: Record<string, (arg?: Arg) => ToolSpec> = {
   /** Next month's price for one fuel, from the CEF figures to date. */
   forecast: (arg = {}) => spec([
     PRODUCT(),
     { kind: 'select', id: 'relief', label: 'Fuel levy relief after 1 December', def: 'ends', options: [{ value: 'ends', label: 'Ends as announced (levy back to full)' }, { value: 'kept', label: 'Extended for another month' }], help: `R${formatNumber(RELIEF.petrol / 100, 2)} a litre on petrol, R${formatNumber(RELIEF.diesel / 100, 2)} on diesel until 1 December` },
-    { kind: 'select', id: 'move', label: 'Oil and rand until the window closes', def: '0', options: MOVES, adv: true, short: 'oil and rand' },
-    { kind: 'select', id: 'method', label: 'Days still to come', def: 'latest', options: [{ value: 'latest', label: 'At the latest daily figure (closer in 2026)' }, { value: 'average', label: 'At the average so far' }], adv: true, short: 'days to come' },
-    { kind: 'select', id: 'slate', label: 'Slate levy change', def: '0', options: SLATES, adv: true, short: 'slate levy' },
+    { kind: 'select', id: 'move', label: 'Oil and rand until the window closes', def: '0', options: MOVES, adv: true, short: 'Oil and rand' },
+    { kind: 'select', id: 'method', label: 'Days still to come', def: 'latest', options: [{ value: 'latest', label: 'At the latest daily figure (closer in 2026)' }, { value: 'average', label: 'At the average so far' }], adv: true, short: 'Days still to come' },
+    { kind: 'select', id: 'slate', label: 'Slate levy change', def: '0', options: SLATES, adv: true, short: 'Slate levy' },
     LITRES(EX.litres, 'Litres in a tank'),
   ], arg, (v) => {
     const p = prod(v);
     const f = forecast({ product: p, reliefEnds: s(v, 'relief') !== 'kept', move: n(v, 'move'), method: s(v, 'method') === 'average' ? 'average' : 'latest', slate: n(v, 'slate') });
     const smnrp = p === 'ipw' ? Math.round(f.change * SMNRP_RATIO) : 0;
+    const l = n(v, 'litres');
     return {
       label: `${PRODUCT_NAME[p]}, estimated from ${day(NEXT_CHANGE)} (Gauteng ${basis(p)})`, value: rpl(f.next),
-      sub: `${dr(f.change)} a litre (${dc(f.change)}) on today’s ${rpl(f.now)}${hasCoast(p) ? ` · coast ${rpl(f.nextCoast)}` : ''}`,
+      sub: answerLine(p, f),
       example: `Example: ${PRODUCT_NAME[p].toLowerCase()}, levy relief ending as announced, ${ASOF}`,
       exampleAide: 'Change the fuel or the assumptions to see another estimate',
       rows: [
-        [`${f.averageSoFar >= 0 ? 'Over' : 'Under'}-recovery so far (average from ${day(LATEST.window[0])})`, `${dc(Math.abs(f.averageSoFar))} a litre`],
-        [`Latest day (${day(LATEST.window[1])})`, `${dc(Math.abs(f.latestDay))} ${f.latestDay >= 0 ? 'over' : 'under'}`],
-        ['Window average projected to the close', `${dc(Math.abs(f.projected))} ${f.projected >= 0 ? 'over' : 'under'}`],
-        ...(f.levyEffect ? [['Fuel levy relief ends', dc(f.levyEffect)] as [string, string]] : []),
-        ...(f.slate ? [['Slate levy change (your assumption)', dc(f.slate)] as [string, string]] : []),
-        [`A ${num(n(v, 'litres'))}-litre tank`, `${rand(tank(n(v, 'litres'), f.now))} now, ${rand(tank(n(v, 'litres'), f.next))} then`],
-        ...(p === 'ipw' ? [['Paraffin at the shop (SMNRP)', `about ${rpl(LATEST.inForce.smnrp + smnrp)} a litre`] as [string, string]] : []),
+        [`A ${num(l)}-litre tank`, `${rand(tank(l, f.now))} now, ${rand(tank(l, f.next))} then`],
+        ...changeRows(f),
+        ...(p === 'ipw' ? [['Paraffin at the shop (maximum retail price)', `about ${rpl(LATEST.inForce.smnrp + smnrp)} a litre`] as [string, string]] : []),
       ],
-      note: `${isPetrol(p) ? 'Petrol pump prices are regulated: every station in the zone charges the same.' : 'Diesel and paraffin: the wholesale price is regulated, the pump price is set by each station, usually above it.'} The official figure comes with the Department’s statement a few days before ${day(NEXT_CHANGE)}.`,
+      note: `${f.change < -0.5 ? `Filling up after ${day(NEXT_CHANGE)} costs less. ` : f.change > 0.5 ? `Filling up before ${day(NEXT_CHANGE)} costs less. ` : ''}${whyOthers(f)} ${isPetrol(p) ? 'Petrol pump prices are regulated: every station in the zone charges the same.' : 'Diesel and paraffin: the wholesale price is regulated, the pump price is set by each station, usually above it, but it moves by the same amount.'} The official figure comes with the Department’s statement a few days before ${day(NEXT_CHANGE)}.`,
     };
   }),
 
@@ -84,7 +106,7 @@ const SPECS: Record<string, (arg?: Arg) => ToolSpec> = {
       label: `${num(l)} litres of ${PRODUCT_NAME[p].toLowerCase()}, ${zoneWord(p, z)}`, value: rand(tank(l, now)),
       sub: `at ${rpl(now)} a litre (${basis(p)} until ${day('2026-12-01')})`,
       example: `Example: a ${num(l)}-litre tank in ${zoneWord(p, z)}`,
-      rows: [[`Same tank from ${day(NEXT_CHANGE)} (estimate)`, rand(tank(l, next))], ['Difference per tank', `${tank(l, f.change) >= 0 ? '+' : '-'}${rand(Math.abs(tank(l, f.change)))}`], ['Four tanks a month', rand(4 * tank(l, now))]],
+      rows: [[`Same tank from ${day(NEXT_CHANGE)} (estimate)`, rand(tank(l, next))], ['Difference per tank', `${tank(l, f.change) >= 0 ? '+' : '-'}${rand(Math.abs(tank(l, f.change)))}`], ['Four tanks a month at today’s price', rand(4 * tank(l, now))]],
       note: isPetrol(p) ? undefined : 'Diesel and paraffin: this is the regulated wholesale price; stations add their own margin.',
     };
   }),
@@ -111,13 +133,13 @@ const SPECS: Record<string, (arg?: Arg) => ToolSpec> = {
     return {
       label: 'Fuel a month at today’s price', value: rand(now), sub: `${rand(next)} a month from ${day(NEXT_CHANGE)} (estimate, ${next >= now ? '+' : '-'}${rand(Math.abs(next - now))})`,
       example: `Example: ${num(n(v, 'km'))} km a day, ${num(n(v, 'days'))} days a month`,
-      rows: [['Litres a month', `${formatNumber((n(v, 'km') * n(v, 'days') * n(v, 'l100')) / 100, 0)} l`], ['A year at today’s price', rand(now * 12)], ['Kilometres a month', `${num(n(v, 'km') * n(v, 'days'))} km`]],
+      rows: [['Litres a month', `${formatNumber((n(v, 'km') * n(v, 'days') * n(v, 'l100')) / 100, 0)} litres`], ['A year at today’s price', rand(now * 12)], ['Kilometres a month', `${num(n(v, 'km') * n(v, 'days'))} km`]],
     };
   }),
 
   /** Price on a past date against today. */
   history: (arg = {}) => spec([
-    { kind: 'select', id: 'fuel', label: 'Fuel', def: 'p95', options: [{ value: 'p95', label: 'Petrol 95' }, { value: 'd50', label: 'Diesel 0.05% (wholesale)' }, { value: 'ipw', label: 'Paraffin (wholesale)' }, { value: 'lpg', label: 'LPG gas (per kg)' }] },
+    { kind: 'select', id: 'fuel', label: 'Fuel', def: 'p95', options: [{ value: 'p95', label: 'Petrol 95' }, { value: 'd50', label: 'Diesel 500 ppm (wholesale)' }, { value: 'ipw', label: 'Paraffin (wholesale)' }, { value: 'lpg', label: 'LPG gas (per kg)' }] },
     { kind: 'select', id: 'when', label: 'Compare with the price of', def: HISTORY[HISTORY.length - 13].date, options: HISTORY.slice(0, -1).map((h) => ({ value: h.date, label: monthName(h.date) })).reverse() },
     ZONE, LITRES(),
   ], arg, (v) => {
@@ -133,7 +155,7 @@ const SPECS: Record<string, (arg?: Arg) => ToolSpec> = {
   }),
 
   /** What a month of driving cost in each month of 2026. */
-  year: (arg = {}) => spec([{ id: 'litres', label: 'Litres of petrol 95 a month', def: 150, unit: 'l', max: 10000 }, ZONE], arg, (v) => {
+  year: (arg = {}) => spec([{ id: 'litres', label: 'Litres of petrol 95 a month', def: 150, unit: 'litres', max: 10000 }, ZONE], arg, (v) => {
     const l = n(v, 'litres'), zi = s(v, 'zone') === 'coast' ? 1 : 0;
     const rows2026 = HISTORY.filter((h) => h.date >= '2026-01-01');
     const before = HISTORY.filter((h) => h.date < '2026-01-01').pop()!;
@@ -156,43 +178,44 @@ const SPECS: Record<string, (arg?: Arg) => ToolSpec> = {
       label: `Taxes and levies in ${num(l)} litres of ${PRODUCT_NAME[p].toLowerCase()}`, value: r(x.taxes + x.slate),
       sub: `${pct((x.taxes + x.slate) / x.total, 0)} of ${r(x.total)} (Gauteng, ${day(LAST_MONTH.effective)} structure)`,
       example: `Example: ${num(l)} litres in Gauteng`,
-      rows: [['Fuel itself, landed (Basic Fuel Price)', r(x.bfp), x.bfp], ['General fuel levy', r(x.fuelLevy), x.fuelLevy], ['Road Accident Fund levy', r(x.raf), x.raf], ['Slate levy', r(x.slate), x.slate], [isPetrol(p) ? 'Retail and wholesale margins' : 'Wholesale margin', r(x.retail + x.wholesale), x.retail + x.wholesale], ['Storage, distribution, transport to Gauteng', r(x.storage + x.zone), x.storage + x.zone]],
+      rows: [['Not a tax: the fuel itself, landed (Basic Fuel Price)', r(x.bfp), x.bfp], ['General fuel levy', r(x.fuelLevy), x.fuelLevy], ['Road Accident Fund levy', r(x.raf), x.raf], ['Slate levy', r(x.slate), x.slate], [isPetrol(p) ? 'Retail and wholesale margins' : 'Wholesale margin', r(x.retail + x.wholesale), x.retail + x.wholesale], ['Storage, distribution, transport to Gauteng', r(x.storage + x.zone), x.storage + x.zone]],
       note: 'Excise duty (4c) and small levies are counted with the taxes. No VAT is charged on petrol and diesel in South Africa.',
     };
   }),
 
   /** Levies paid over a year. */
-  levy: (arg = {}) => spec([PRODUCT('p95', ['p95', 'd50']), { id: 'litres', label: 'Litres a month', def: 150, unit: 'l', max: 100000 }], arg, (v) => {
+  levy: (arg = {}) => spec([PRODUCT('p95', ['p95', 'd50']), { id: 'litres', label: 'Litres a month', def: 150, unit: 'litres', max: 100000 }], arg, (v) => {
     const p = prod(v), l = n(v, 'litres') * 12, fl = isPetrol(p) ? LAST_MONTH.fuelLevy.petrol : LAST_MONTH.fuelLevy.diesel, full = isPetrol(p) ? PREV_MONTH.fuelLevy.petrol : PREV_MONTH.fuelLevy.diesel;
     return {
-      label: 'Fuel levy and RAF levy in a year', value: rand(tank(l, full + LAST_MONTH.raf)), sub: `at the full rates (${dc(full)} and ${dc(LAST_MONTH.raf)} a litre)`,
+      label: 'Fuel levy and Road Accident Fund (RAF) levy in a year', value: rand(tank(l, full + LAST_MONTH.raf)), sub: `at the full rates (${cents(full)} and ${cents(LAST_MONTH.raf)} a litre)`,
       example: `Example: ${num(n(v, 'litres'))} litres a month`,
-      rows: [['Fuel levy (full rate)', rand(tank(l, full))], ['Road Accident Fund levy', rand(tank(l, LAST_MONTH.raf))], ['Saved this month by the relief', rand(tank(n(v, 'litres'), full - fl))]],
+      rows: [['Fuel levy (full rate)', rand(tank(l, full))], ['Road Accident Fund levy', rand(tank(l, LAST_MONTH.raf))], [`Saved in ${monthName(LAST_MONTH.effective)} alone by the fuel tax cut`, rand(tank(n(v, 'litres'), full - fl))]],
     };
   }),
 
   /** The slate levy over a month. */
-  slate: (arg = {}) => spec([{ id: 'litres', label: 'Litres a month (petrol or diesel)', def: 150, unit: 'l', max: 100000 }], arg, (v) => {
+  slate: (arg = {}) => spec([{ id: 'litres', label: 'Litres a month (petrol or diesel)', def: 150, unit: 'litres', max: 100000 }], arg, (v) => {
     const l = n(v, 'litres'), now = LAST_MONTH.slate, prev = PREV_MONTH.slate;
     const peak = Math.max(...MONTHS.map((m) => m.slate));
     return {
-      label: 'Slate levy in your month', value: rand(tank(l, now)), sub: `${dc(now)} a litre since ${day(LAST_MONTH.effective)}`,
+      label: 'Slate levy in your month', value: rand(tank(l, now)), sub: `${cents(now)} a litre since ${day(LAST_MONTH.effective)}`,
       example: `Example: ${num(l)} litres a month`,
-      rows: [[`At October’s ${dc(prev)}`, rand(tank(l, prev))], [`At the 2026 peak of ${dc(peak)}`, rand(tank(l, peak))], ['A year at today’s rate', rand(tank(l * 12, now))]],
+      rows: [[`At October’s ${cents(prev)}`, rand(tank(l, prev))], [`At the 2026 peak of ${cents(peak)}`, rand(tank(l, peak))], ['A year at today’s rate', rand(tank(l * 12, now))]],
     };
   }),
 
-  /** From an over- or under-recovery to a price change. */
+  /** From an over- or under-recovery to a price change. Prefilled with the gap this site expects for petrol 95 at the
+   *  close of the window, so the result is the home page's figure (naive testers 2026-11-14: -162c here, -232c there). */
   recovery: (arg = {}) => spec([
-    { id: 'gap', label: 'Average gap over the window', def: Math.round(Math.abs(LATEST.average.p95)), unit: 'c/l', max: 3000 },
-    { kind: 'select', id: 'side', label: 'Which way', def: LATEST.average.p95 >= 0 ? 'over' : 'under', options: [{ value: 'over', label: 'Over-recovery (pump price above cost)' }, { value: 'under', label: 'Under-recovery (pump price below cost)' }] },
+    { id: 'gap', label: 'Average gap over the month, cents a litre', def: Math.abs(forecast({ product: 'p95' }).roundedRecovery), unit: 'cents', max: 3000 },
+    { kind: 'select', id: 'side', label: 'Which way', def: forecast({ product: 'p95' }).roundedRecovery >= 0 ? 'over' : 'under', options: [{ value: 'over', label: 'Over-recovery (price comes down)' }, { value: 'under', label: 'Under-recovery (price goes up)' }] },
     { kind: 'select', id: 'fuel', label: 'Fuel', def: 'p95', options: [{ value: 'p95', label: 'Petrol' }, { value: 'd50', label: 'Diesel' }] },
   ], arg, (v) => {
     const g = Math.round(n(v, 'gap')) * (s(v, 'side') === 'over' ? -1 : 1), p = prod(v), lev = isPetrol(p) ? RELIEF.petrol : RELIEF.diesel;
     return {
-      label: 'Price change from the gap alone', value: dc(g), sub: `${dc(g + lev)} once the ${dc(lev)} levy relief ends`,
-      example: `Example: ${num(n(v, 'gap'))}c ${s(v, 'side')}-recovery`,
-      rows: [['A 50-litre tank, gap alone', `${g >= 0 ? '+' : '-'}${rand(Math.abs(tank(50, g)))}`], ['Same tank with the levy back', `${g + lev >= 0 ? '+' : '-'}${rand(Math.abs(tank(50, g + lev)))}`]],
+      label: 'Price change on the first Wednesday', value: `${dc(g + lev)} a litre`, sub: `The gap ${effect(g)}, the end of the fuel tax cut ${effect(lev)}.`,
+      example: `Example: the ${cents(n(v, 'gap'))} ${s(v, 'side')}-recovery this site expects for ${p === 'p95' ? 'petrol 95' : 'diesel'} by ${day(WINDOW_END)}`,
+      rows: [['From the gap alone', `${dc(g)} a litre`], ['A 50-litre tank, with the tax cut ending', `${g + lev >= 0 ? '+' : '-'}${rand(Math.abs(tank(50, g + lev)))}`], ['A 50-litre tank, from the gap alone', `${g >= 0 ? '+' : '-'}${rand(Math.abs(tank(50, g)))}`]],
       note: 'The statement rounds the average to the nearest full cent; the Minister can add levy, margin or transport changes on top.',
     };
   }),
@@ -207,7 +230,7 @@ const SPECS: Record<string, (arg?: Arg) => ToolSpec> = {
     return {
       label: `Effect on ${PRODUCT_NAME[p].toLowerCase()}`, value: `${dc(c)} a litre`, sub: `${c >= 0 ? '+' : '-'}${rand(Math.abs(tank(n(v, 'litres'), c)))} on ${num(n(v, 'litres'))} litres, oil price unchanged`,
       example: `Example: rand ${n(v, 'move') > 0 ? 'weaker' : 'stronger'} by ${Math.abs(n(v, 'move'))}% for a whole window`,
-      rows: [[`Basic Fuel Price on ${day(LATEST.date)}`, `${dc(LATEST.bfp[p === 'ipw' ? 'ip' : p])} a litre`], ['Rand on that day', `R${formatNumber(LATEST.zarusd, 2)} to the dollar`]],
+      rows: [[`Basic Fuel Price on ${day(LATEST.date)}`, `${cents(LATEST.bfp[p === 'ipw' ? 'ip' : p])} a litre`], ['Rand on that day', `R${formatNumber(LATEST.zarusd, 2)} to the dollar`]],
       note: 'The whole landed cost is priced in dollars, so it moves with the rand in proportion. Levies and margins do not.',
     };
   }),
@@ -226,7 +249,7 @@ const SPECS: Record<string, (arg?: Arg) => ToolSpec> = {
   }),
 
   /** Paraffin at the shop. */
-  paraffin: (arg = {}) => spec([{ id: 'litres', label: 'Litres a month', def: 20, unit: 'l', max: 5000 }], arg, (v) => {
+  paraffin: (arg = {}) => spec([{ id: 'litres', label: 'Litres a month', def: 20, unit: 'litres', max: 5000 }], arg, (v) => {
     const l = n(v, 'litres'), f = forecast({ product: 'ipw' }), cap = LATEST.inForce.smnrp as number, capNext = cap + Math.round(f.change * SMNRP_RATIO);
     return {
       label: 'Most you can be charged a month', value: rand(tank(l, cap)), sub: `${rpl(cap)} a litre, single maximum national retail price until ${day('2026-12-01')}`,
@@ -236,10 +259,10 @@ const SPECS: Record<string, (arg?: Arg) => ToolSpec> = {
   }),
 
   /** Coast against Gauteng. */
-  zone: (arg = {}) => spec([PRODUCT('p95', ['p95', 'd50', 'ipw']), { id: 'litres', label: 'Litres a month', def: 150, unit: 'l', max: 100000 }], arg, (v) => {
+  zone: (arg = {}) => spec([PRODUCT('p95', ['p95', 'd50', 'ipw']), { id: 'litres', label: 'Litres a month', def: 150, unit: 'litres', max: 100000 }], arg, (v) => {
     const p = prod(v), gap = COAST_GAP[p], l = n(v, 'litres');
     return {
-      label: 'Paid more in Gauteng than at the coast', value: `${rand(tank(l * 12, gap))} a year`, sub: `${dc(gap)} a litre: ${rpl(inForce(p))} against ${rpl(inForce(p) - gap)}`,
+      label: 'Paid more in Gauteng than at the coast', value: `${rand(tank(l * 12, gap))} a year`, sub: `${cents(gap)} a litre more: ${rpl(inForce(p))} against ${rpl(inForce(p) - gap)}`,
       example: `Example: ${num(l)} litres a month`,
       rows: [['A month', rand(tank(l, gap))], ['A 50-litre tank', rand(tank(50, gap))]],
     };
@@ -248,16 +271,16 @@ const SPECS: Record<string, (arg?: Arg) => ToolSpec> = {
   /** Diesel against petrol for the same distance. */
   gap: (arg = {}) => spec([
     { id: 'km', label: 'Kilometres a month', def: 1500, unit: 'km', max: 50000 },
-    { id: 'lp', label: 'Petrol car: litres per 100 km', def: 8, unit: 'l', max: 40, decimals: 1 },
-    { id: 'ld', label: 'Diesel car: litres per 100 km', def: 6.5, unit: 'l', max: 40, decimals: 1 },
+    { id: 'lp', label: 'Petrol car: litres per 100 km', def: 8, unit: 'litres', max: 40, decimals: 1 },
+    { id: 'ld', label: 'Diesel car: litres per 100 km', def: 6.5, unit: 'litres', max: 40, decimals: 1 },
   ], arg, (v) => {
     const fp = forecast({ product: 'p95' }), fd = forecast({ product: 'd50' });
     const cp = (n(v, 'km') * n(v, 'lp') / 100) * fp.now / 100, cd = (n(v, 'km') * n(v, 'ld') / 100) * fd.now / 100;
     const np = (n(v, 'km') * n(v, 'lp') / 100) * fp.next / 100, nd = (n(v, 'km') * n(v, 'ld') / 100) * fd.next / 100;
     return {
-      label: 'Diesel car saves a month', value: rand(cp - cd), sub: `petrol ${rand(cp)}, diesel ${rand(cd)} (diesel at the wholesale price)`,
+      label: cp >= cd ? 'A diesel car saves a month, before the station’s diesel margin' : 'A petrol car saves a month, before the station’s diesel margin', value: rand(Math.abs(cp - cd)), sub: `petrol ${rand(cp)} at the pump, diesel ${rand(cd)} at the wholesale price: the station’s own diesel margin comes on top, so the real saving is smaller`,
       example: `Example: ${num(n(v, 'km'))} km a month`,
-      rows: [[`From ${day(NEXT_CHANGE)} (estimate): petrol`, rand(np)], [`From ${day(NEXT_CHANGE)} (estimate): diesel`, rand(nd)], ['Saving then', rand(np - nd)]],
+      rows: [[`From ${day(NEXT_CHANGE)} (estimate): petrol`, rand(np)], [`From ${day(NEXT_CHANGE)} (estimate): diesel`, rand(nd)], [np >= nd ? 'Diesel saving then, before the margin' : 'Petrol saving then, before the margin', rand(Math.abs(np - nd))]],
     };
   }),
 
@@ -271,7 +294,7 @@ const SPECS: Record<string, (arg?: Arg) => ToolSpec> = {
     return {
       label: 'Monthly instalment', value: rand(i), sub: `at ${formatNumber(r, 2)}% over ${num(n(v, 'years'))} years`,
       example: `Example: a ${rand(n(v, 'loan'))} bond over ${num(n(v, 'years'))} years`,
-      rows: [['If the MPC hikes 0.25%', `${rand(up)} (+${rand(up - i)})`], ['If the MPC cuts 0.25%', `${rand(dn)} (-${rand(i - dn)})`], ['Interest over the term', rand(interestTotal(n(v, 'loan'), r, n(v, 'years')))]],
+      rows: [['If the Reserve Bank’s rate committee (MPC) hikes 0.25%', `${rand(up)} (+${rand(up - i)})`], ['If it cuts 0.25%', `${rand(dn)} (-${rand(i - dn)})`], ['Interest over the term', rand(interestTotal(n(v, 'loan'), r, n(v, 'years')))]],
       note: 'Equal monthly payments, interest at the current rate for the whole term. Bank fees and life cover not included.',
     };
   }),

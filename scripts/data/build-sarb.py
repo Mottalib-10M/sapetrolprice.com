@@ -7,7 +7,7 @@ current market rates table; the upcoming MPC announcement dates listed on the Mo
 """
 import datetime as dt, html, json, os, re, subprocess
 
-UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130 Safari/537.36'
+UA = 'sapetrolprice.com data reader (+https://sapetrolprice.com)'
 API = 'https://custom.resbank.co.za/SarbWebApi/WebIndicators/'
 MPC_PAGE = 'https://www.resbank.co.za/en/home/what-we-do/monetary-policy/monetary-policy-committee'
 

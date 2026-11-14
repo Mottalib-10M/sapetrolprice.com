@@ -218,7 +218,7 @@ describe('9. champs repliés : valeur actuelle visible', () => {
   // (testeurs : libellés et valeurs collés) ; le nom court d'un champ (`short`) remplace son libellé quand il existe.
   it('le titre du repli de SpecTool dit « Already filled in: … » avec chaque valeur cachée', () => {
     const h = renderToStaticMarkup(createElement(SpecTool, { kind: 'k' }));
-    expect(h).toMatch(/data-actuellement[^>]*>Already filled in: Age 40\u00a0yrs · Status Married filing jointly</);
+    expect(h).toMatch(/data-actuellement[^>]*>Already filled in\. Age: 40\u00a0yrs · Status: Married filing jointly</);
     const repli = h.slice(h.indexOf('<details'));
     expect(repli).toContain('id="t-age"');
     expect(repli).not.toContain('id="t-montant"');

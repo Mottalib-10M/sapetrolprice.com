@@ -94,9 +94,10 @@ h1 { font-weight: 700; } h2 { font-weight: 650; } h3 { font-weight: 600; }
   .clamp-toggle:focus-visible ~ .clamp-more { outline: 2px solid #111827; outline-offset: 3px; }
   /* Long text in accordions: the text stays in the HTML, the screen shows the titles. */
   .fold { border-top: 1px solid var(--color-navy-200); }
-  .fold > summary { cursor: pointer; list-style: none; padding: 0.9rem 0; font-family: var(--font-serif, serif); font-size: 1.2rem; font-weight: 650; color: var(--color-navy-900); }
+  /* sapetrolprice.com 2026-11-14: a floated "+" dropped to its own line under a two-line title; flex keeps it beside. */
+  .fold > summary { display: flex; align-items: baseline; justify-content: space-between; gap: 0.75rem; cursor: pointer; list-style: none; padding: 0.9rem 0; font-family: var(--font-serif, serif); font-size: 1.2rem; font-weight: 650; color: var(--color-navy-900); }
   .fold > summary::-webkit-details-marker { display: none; }
-  .fold > summary::after { content: '+'; float: right; color: var(--color-navy-600); }
+  .fold > summary::after { content: '+'; flex-shrink: 0; color: var(--color-navy-600); }
   .fold[open] > summary::after { content: '\2013'; }
   .fold > summary > .fold-h { display: inline; font: inherit; margin: 0; color: inherit; }
   /* Ledger note: a rule on the left, a faint tint, small-caps title. */

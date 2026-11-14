@@ -8,7 +8,7 @@ export const GROUPS: Array<{ id: Group; label: string }> = [
   { id: 'fuels', label: 'Price by fuel' },
   { id: 'costs', label: 'What driving costs you' },
   { id: 'why', label: 'Why the price moves' },
-  { id: 'rates', label: 'Repo, prime and your bond' },
+  { id: 'rates', label: 'Also: interest rates and your bond' },
 ];
 export const label = (id: string, _lang?: Locale) => CORE[id] ?? pageById(id)?.nav ?? id;
 const link = (id: string, lang: Locale): NavLink => ({ href: route(id, lang), label: label(id) });

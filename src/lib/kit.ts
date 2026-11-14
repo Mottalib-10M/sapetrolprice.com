@@ -4,11 +4,12 @@
  *   K.F.p95 … K.F.ipw      next month's estimate per fuel (default assumptions, the same as every calculator)
  *   K.S.p95 …              what a litre is made of (Annexure 1 of the latest statement)
  *   K.EX                   the one example case of the whole site
- *   formats                K.rand(1512) "R1,512", K.rpl(3024) "R30.24", K.dc(-232) "-232c", K.dr(-232) "-R2.32", K.day(iso), K.month(iso)
+ *   formats                K.rand(1512) "R1,512", K.rpl(3024) "R30.24", K.dc(-232) "-232c", K.dr(-232) "-R2.32" (price moves only),
+ *                          K.c(279) "279c" (amounts), K.rec(382) "382c over-recovery", K.recEff(382) "lowers the price by 382c"
  */
 import * as E from './engine/fuel';
 import { EX } from './tool-specs';
-import { rand, rc, rpl, dc, dr, num, pct, day, monthName, monthOnly } from './fmt';
+import { rand, rc, rpl, dc, dr, cents, rands, rec, recShort, effect, recEffect, moveWords, num, pct, day, monthName, monthOnly } from './fmt';
 import { formatNumber } from './format';
 import P from '../data/params-2026.json';
 
@@ -22,7 +23,10 @@ const p93At = (iso: string) => E.DAILIES.find((d) => d.date.slice(0, 7) === iso.
 export const KIT = {
   E, F, S, EX, P, month, p93At,
   BT: { p95: bt95, d50: bt50, mae95: E.meanAbs(bt95.map((r) => r.projected - r.final)), maeAvg95: E.meanAbs(bt95.map((r) => r.avg - r.final)), mae50: E.meanAbs(bt50.map((r) => r.projected - r.final)), maeAvg50: E.meanAbs(bt50.map((r) => r.avg - r.final)) },
-  rand, rc, rpl, dc, dr, num, pct, day, month_: monthName, mon: monthOnly,
+  rand, rc, rpl, dc, dr, num,
+  /** Signs (naive testers 2026-11-14): dc/dr for a price move only; c for an amount ("279c"); rec for a recovery
+   *  ("382c over-recovery"); eff/recEff for what a part does to the price ("lowers the price by 382c"). */
+  c: cents, rands, rec, recS: recShort, eff: effect, recEff: recEffect, moveWords, pct, day, month_: monthName, mon: monthOnly,
   dec: (x: number, d = 2) => formatNumber(x, d),
   /** "7.25%" */
   rate: (x: number) => `${formatNumber(x, 2)}%`,

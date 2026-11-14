@@ -9,6 +9,7 @@
   "scripts": {
     "dev": "astro dev --port 5947",
     "build": "astro build && node scripts/typo-nbsp.mjs && python3 scripts/check-snippets.py dist",
+    "update-data": "python3 scripts/data/build-cef.py --auto \"${RUNNER_TEMP:-/tmp}/cef-pdf\" && python3 scripts/data/build-sarb.py",
     "preview": "astro preview --port 5947",
     "astro": "astro",
     "test": "vitest run",

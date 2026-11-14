@@ -13,7 +13,7 @@ import SARB from '../../data/sarb.json';
 export type Product = 'p95' | 'p93' | 'd50' | 'd005' | 'ipw';
 export const PRODUCTS: Product[] = ['p95', 'p93', 'd50', 'd005', 'ipw'];
 export const PRODUCT_NAME: Record<Product, string> = {
-  p95: 'Petrol 95', p93: 'Petrol 93', d50: 'Diesel 0.05% (500 ppm)', d005: 'Diesel 0.005% (50 ppm)', ipw: 'Illuminating paraffin (wholesale)',
+  p95: 'Petrol 95', p93: 'Petrol 93', d50: 'Diesel 500 ppm (0.05% sulphur)', d005: 'Diesel 50 ppm (0.005% sulphur)', ipw: 'Illuminating paraffin (wholesale)',
 };
 /** Key of the same product in the daily sheet (paraffin is "ip" there). */
 const DK: Record<Product, string> = { p95: 'p95', p93: 'p93', d50: 'd50', d005: 'd005', ipw: 'ip' };

@@ -28,7 +28,9 @@ export function valeurAffichee(i: Input, v: V): string {
 /** Title line of the folded fields (naive testers 2026-11-09, second pass: "Now: Split plan only: the part of the premium
  *  you pay after tax 30% · Tax filing status Single" ran labels and values together). Each field by its short name. */
 export function resumeChamps(adv: Input[], v: V): string {
-  return `Already filled in: ${adv.map((i) => `${i.short ?? i.label} ${valeurAffichee(i, v)}`).join(' · ')}`;
+  // sapetrolprice.com, 2026-11-14: "oil and rand No change · days to come At the latest…" read as broken text: a colon
+  // after each name, so the reader sees where a setting ends and its value starts.
+  return `Already filled in. ${adv.map((i) => `${i.short ?? i.label}: ${valeurAffichee(i, v)}`).join(' · ')}`;
 }
 
 interface Props { kind: string; arg?: string; methodHref?: string; idPrefix?: string }

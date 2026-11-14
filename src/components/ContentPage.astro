@@ -24,7 +24,7 @@ if (page.faqs.length) jsonLd.push(faqSchema(page.faqs, lang));
 const related = page.related.filter((id) => ROUTES.some((r) => r.id === id)).map((id) => ({ href: route(id, lang), name: label(id), description: pageById(id)?.card ?? '' }));
 const sources = page.sources.map((k) => ({ name: SOURCES[k].label, url: SOURCES[k].url }));
 ---
-<PageLayout title={page.title} description={page.description} lang={lang} jsonLd={jsonLd} faqs={page.faqs} related={related} sources={sources} breadcrumbs={[{ label: group.label }, { label: page.nav }]}>
+<PageLayout title={page.title} description={page.description} lang={lang} jsonLd={jsonLd} faqs={page.faqs} faqTitle={page.group === 'rates' ? 'Questions homeowners ask' : undefined} related={related} sources={sources} breadcrumbs={[{ label: group.label }, { label: page.nav }]}>
   <article>
     <header class="mb-4">
       <h1 class="font-serif text-[1.75rem] font-bold text-navy-900 max-sm:leading-tight sm:text-3xl md:text-4xl">{page.h1}</h1>

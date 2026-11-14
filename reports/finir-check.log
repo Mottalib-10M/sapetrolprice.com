@@ -1,0 +1,109 @@
+
+> sapetrolprice.com@0.1.0 check
+> npm run build && npx vitest run && node scripts/typo-nbsp.mjs dist --check && node scripts/check-legal.mjs && python3 scripts/check-seo.py . && python3 scripts/check-unique.py . && python3 scripts/check-trame.py . && python3 scripts/check-liens.py . && node scripts/check-layout.mjs . && node scripts/check-sources.mjs . && python3 scripts/check-simulateurs.py . && python3 scripts/check-hreflang.py . && python3 scripts/check-anglais.py . && python3 scripts/check-portefeuille.py . && python3 scripts/check-cookies.py . && node scripts/check-url-propre.mjs . && node scripts/check-premier-ecran.mjs . && node scripts/check-droits.mjs . && node scripts/check-copie.mjs . && node scripts/check-nombres.mjs . && node scripts/check-contraste.mjs . && node scripts/check-saisie.mjs . && python3 scripts/check-regles.py . && python3 scripts/check-motcle.py .
+
+
+> sapetrolprice.com@0.1.0 build
+> astro build && node scripts/typo-nbsp.mjs && python3 scripts/check-snippets.py dist
+
+21:36:17 [types] Generated 108ms
+21:36:17 [build] output: "static"
+21:36:17 [build] mode: "static"
+21:36:17 [build] directory: /Users/mottalib/Documents/GitHub/a-publier/Mottalib-10M/sapetrolprice.com/dist/
+21:36:17 [build] Collecting build info...
+21:36:17 [build] ✓ Completed in 127ms.
+21:36:17 [build] Building static entrypoints...
+21:36:18 [vite] ✓ built in 1.32s
+21:36:19 [vite] ✓ built in 662ms
+21:36:19 [build] Rearranging server assets...
+
+ generating static routes 
+21:36:19   ├─ /404.html (+11ms) 
+21:36:19   ├─ /embed/petrol-price/index.html (+19ms) 
+21:36:19   ├─ /en/about/index.html (+8ms) 
+21:36:19   ├─ /en/contact/index.html (+7ms) 
+21:36:19   ├─ /en/cookies/index.html (+5ms) 
+21:36:19   ├─ /en/editorial-policy/index.html (+4ms) 
+21:36:19   ├─ /en/legal-notice/index.html (+5ms) 
+21:36:19   ├─ /en/method/index.html (+9ms) 
+21:36:19   ├─ /en/privacy/index.html (+5ms) 
+21:36:19   ├─ /en/widget/index.html (+3ms) 
+21:36:19   ├─ /en/index.html (+16ms) 
+21:36:19   ├─ /en/petrol-price-december-2026/index.html (+11ms) 
+21:36:19   ├─ /en/petrol-price-november-2026/index.html (+5ms) 
+21:36:19   ├─ /en/petrol-price-history/index.html (+9ms) 
+21:36:19   ├─ /en/fuel-price-coast-vs-inland/index.html (+6ms) 
+21:36:19   ├─ /en/petrol-95-price/index.html (+5ms) 
+21:36:19   ├─ /en/petrol-93-price/index.html (+5ms) 
+21:36:19   ├─ /en/diesel-price/index.html (+5ms) 
+21:36:19   ├─ /en/paraffin-price/index.html (+5ms) 
+21:36:19   ├─ /en/lpg-gas-price/index.html (+5ms) 
+21:36:19   ├─ /en/fuel-cost-per-km/index.html (+3ms) 
+21:36:19   ├─ /en/diesel-vs-petrol-price/index.html (+4ms) 
+21:36:19   ├─ /en/what-is-in-a-litre-of-petrol/index.html (+4ms) 
+21:36:19   ├─ /en/fuel-levy/index.html (+4ms) 
+21:36:19   ├─ /en/slate-levy/index.html (+5ms) 
+21:36:19   ├─ /en/basic-fuel-price/index.html (+9ms) 
+21:36:19   ├─ /en/rand-and-oil-price/index.html (+10ms) 
+21:36:19   ├─ /en/repo-rate/index.html (+7ms) 
+21:36:19   ├─ /en/prime-rate/index.html (+9ms) 
+21:36:19   ├─ /en/bond-repayment/index.html (+4ms) 
+21:36:19   ├─ /en/mpc-meeting-dates/index.html (+9ms) 
+21:36:19   ├─ /en/interest-rates-south-africa/index.html (+5ms) 
+21:36:19   ├─ /llms.txt (+1ms) 
+21:36:19   ├─ /index.html (+5ms) 
+21:36:19 ✓ Completed in 280ms.
+
+21:36:19 [build] ✓ Completed in 2.31s.
+21:36:19 [@astrojs/sitemap] `sitemap-index.xml` created at `dist`
+21:36:19 [build] 33 page(s) built in 2.47s
+21:36:19 [build] Complete!
+typo-nbsp: 0 espace(s) rendue(s) insécable(s) dans 0 page(s)
+check-snippets : 24 pages indexables, titres 50-60, descriptions 150-160, ordre des mots et unicite conformes
+
+ RUN  v4.1.12 /Users/mottalib/Documents/GitHub/a-publier/Mottalib-10M/sapetrolprice.com
+
+
+ Test Files  3 passed (3)
+      Tests  185 passed (185)
+   Start at  21:36:20
+   Duration  685ms (transform 526ms, setup 0ms, import 793ms, tests 180ms, environment 0ms)
+
+typo-nbsp: 0 espace(s) à corriger dans 0 page(s)
+typo-nbsp: 0 décimale(s) avec un point dans une langue à virgule
+typo-nbsp: 0 pourcentage(s) écrit(s) mal placé(s) : « 20 % » là où la langue écrit « 20% », ou après le nombre en turc, qui écrit « %20 » (souvent dans un composant React : corriger la source)
+typo-nbsp: 0 mot(s) français sans accent ou avec un accent faux
+Identité légale complète, aucune mention provisoire.
+. : 24 pages indexables, 0 à corriger
+
+. : 24 pages comparées, 0 paire(s) trop proches, 0 question(s) recyclée(s)
+
+. : 32 pages, 0 à corriger, 0 question(s) de FAQ recyclée(s)
+. : 36 pages, 0 cible(s) morte(s), 0 lien(s) a corriger, 0 route(s) vide(s)
+check-layout: 24 pages × 4 largeurs, 0 défaut(s)
+check-sources: 35 source(s), 0 morte(s), 0 injoignable(s), 0 bloquée(s) aux robots
+. : 22 page(s) de contenu, 0 sans simulateur
+. : 24 pages, 0 avec hreflang, 0 à corriger
+. : site anglophone, contrôle sans objet.
+check-portefeuille : 0 paragraphe(s) copiés, 0 site(s) du portefeuille liés, 60 sites comparés.
+check-cookies : 0 défaut (34 pages, Clarity sur 31, GA4 G-GJC0RFNHPE sur 31, langues en)
+check-url-propre: 24 page(s) du sitemap, 0 défaut(s)
+check-premier-ecran : 0 page(s) fautive(s) sur 22 page(s) à simulateur (24 pages lues)
+check-droits : 32 page(s) lues dans dist ; licences citées : aucune ; workflow planifié : oui
+  (a) liens soumis à autorisation (citer l’organisme sans lien : titre, adresse en texte, date) : 0
+  (b) relais juridique présenté comme officiel (lien vers le texte officiel, ou « relais non officiel ») : 0
+  (c) copie web.archive.org présentée comme officielle (écrire « copie archivée du JJ/MM/AAAA ») : 0
+  (d) attribution de licence absente du pied de page : 0
+  (e) promesse de mise à jour sans workflow planifié (écrire « lu le JJ/MM/AAAA, mise à jour manuelle ») : 0
+check-droits : 0 défaut
+check-copie : sans objet (pas de data/textes-sources/*.txt)
+  24 page(s), 0 champ(s) mal formaté(s)
+check-contraste: 24 page(s), 0 texte(s) sous le seuil
+check-saisie: 20 page(s) à calculateur, 0 défaut(s)
+  trame        ok         site le plus proche : sonographerbystate.com (51 % de blocs en commun)
+  chiffres     ok         date de mise à jour visible · 3 source(s) officielle(s) liée(s)
+  credibilite  ok         À propos lié · méthode liée
+  reseau       ok         liens vers : aucun site du portefeuille
+  publicite    ok         0 emplacement(s) publicitaire(s) sur l’accueil
+check-regles : 292 accueils comparés, 0 règle(s) KO ou à revoir
+check-motcle : 0/22 page(s) où le terme-clé du titre manque {}

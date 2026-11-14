@@ -1,16 +1,24 @@
 #!/usr/bin/env python3
 """Builds src/data/cef.json from the Central Energy Fund's own PDFs (media statements and daily Basic Fuel Price).
 
-Usage: python3 scripts/data/build-cef.py <cache-dir>
+Usage: python3 scripts/data/build-cef.py [--auto] <cache-dir>
 The cache dir receives the PDFs downloaded from cefgroup.co.za (never committed: the documents stay the CEF's; the site
 keeps only the figures, recalculated and dated). Re-run after each new media statement or to refresh the daily figures,
-then `npm run check`. Nothing runs on a schedule: the site says the date of every figure.
+then `npm run check`. The site says the date of every figure.
+
+--auto (used by `npm run update-data`, scheduled on weekdays in .github/workflows/deploy.yml): the lists below are not
+used; the media statements and the daily sheets are read from the CEF's own list pages (STATEMENT_PAGES, DAILY_PAGES).
+One daily sheet per month is kept (the first one dated the 12th or later, as in the hand-picked list) and, for the last
+month, the latest sheet. Nothing dated after WINDOW_END_ASSUMED (src/lib/engine/fuel.ts) is taken: the change to the
+next pricing window needs the constants and the text of the site to be read again by hand, so the script then keeps
+the current window and prints a warning. In January, add the CEF's new yearly list pages below.
 """
 import datetime as dt, json, os, re, subprocess, sys
 import pypdf
 
-CACHE = sys.argv[1]
-UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130 Safari/537.36'
+AUTO = '--auto' in sys.argv
+CACHE = [a for a in sys.argv[1:] if not a.startswith('--')][0]
+UA = 'sapetrolprice.com data reader (+https://sapetrolprice.com)'
 BASE = 'https://cefgroup.co.za/wp-content/uploads/'
 # Media statements of 2026 (list read on https://cefgroup.co.za/2026-3/ on 2026-11-13).
 STATEMENTS = [
@@ -30,6 +38,9 @@ STATEMENTS = [
 DAILIES = ['2026/01/Daily-12-01-2026.pdf', '2026/02/Daily-12-02-2026.pdf', '2026/03/Daily-12-03-2026.pdf', '2026/04/Daily-13-04-2026.pdf',
            '2026/05/Daily-12-05-2026.pdf', '2026/06/Daily-12-06-2026.pdf', '2026/07/Daily-13-07-2026.pdf', '2026/08/Daily-12-08-2026.pdf',
            '2026/09/Daily-14-09-2026.pdf', '2026/10/Daily-12-10-2026.pdf', '2026/11/Daily-11-11-2026.pdf']
+# Yearly list pages of the CEF (read on 2026-11-14): media statements, then daily Basic Fuel Price sheets.
+STATEMENT_PAGES = ['https://cefgroup.co.za/2026-3/']
+DAILY_PAGES = ['https://cefgroup.co.za/2026-4/']
 MON = {m: i + 1 for i, m in enumerate(['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'])}
 
 
@@ -133,7 +144,47 @@ def daily(t):
     }
 
 
+def listed(pages, pattern):
+    """PDF paths (relative to BASE) linked from the CEF list pages, in page order, without duplicates."""
+    out = []
+    for page in pages:
+        html = subprocess.run(['curl', '-sfL', '-A', UA, '-m', '60', page], check=True, capture_output=True, text=True).stdout
+        for rel in re.findall(r'wp-content/uploads/(\d{4}/\d{2}/[^"\'<>\s]+?\.pdf)', html):
+            if re.search(pattern, rel, re.I) and rel not in out: out.append(rel)
+    return out
+
+
+def auto_lists():
+    fuel = open(os.path.join(os.path.dirname(__file__), '..', '..', 'src', 'lib', 'engine', 'fuel.ts')).read()
+    end = re.search(r"WINDOW_END_ASSUMED = '(\d{4}-\d{2}-\d{2})'", fuel).group(1)
+    sts = []
+    for rel in listed(STATEMENT_PAGES, r'/Press-Release'):
+        s = statement(fetch(rel))
+        if s['released'] > end:
+            print(f'::warning::new CEF media statement {rel} (released {s["released"]}) after WINDOW_END_ASSUMED {end}: '
+                  'update src/lib/engine/fuel.ts and the text by hand, then run the script again')
+            continue
+        sts.append((s['effective'], rel))
+    sts = [rel for _, rel in sorted(sts)]
+    days = {}
+    for rel in listed(DAILY_PAGES, r'/Daily-\d{2}-\d{2}-\d{4}'):
+        d, m, y = re.search(r'Daily-(\d{2})-(\d{2})-(\d{4})', rel).groups()
+        iso = f'{y}-{m}-{d}'
+        if iso > end:
+            print(f'::warning::daily sheet {rel} after WINDOW_END_ASSUMED {end}: not taken')
+            continue
+        if iso not in days or len(rel) > len(days[iso]): days[iso] = rel   # a re-upload (-1.pdf) replaces the first file
+    by_month = {}
+    for iso in sorted(days): by_month.setdefault(iso[:7], []).append(iso)
+    keys = sorted(by_month)
+    picks = [next((x for x in by_month[k] if x[8:] >= '12'), by_month[k][-1]) for k in keys[:-1]] + [by_month[keys[-1]][-1]]
+    return sts, [days[x] for x in picks]
+
+
 os.makedirs(CACHE, exist_ok=True)
+if AUTO:
+    STATEMENTS, DAILIES = auto_lists()
+    print(f'auto: {len(STATEMENTS)} statements (last {STATEMENTS[-1]}), {len(DAILIES)} daily sheets (last {DAILIES[-1]})')
 months = [statement(fetch(s)) for s in STATEMENTS]
 for s, mth in zip(STATEMENTS, months): mth['doc'] = BASE + s
 hist, structure = annexure(fetch(STATEMENTS[-1]))
