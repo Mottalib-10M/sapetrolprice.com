@@ -1,0 +1,90 @@
+
+> sapetrolprice.com@0.1.0 check
+> npm run build && npx vitest run && node scripts/typo-nbsp.mjs dist --check && node scripts/check-legal.mjs && python3 scripts/check-seo.py . && python3 scripts/check-unique.py . && python3 scripts/check-trame.py . && python3 scripts/check-liens.py . && node scripts/check-layout.mjs . && node scripts/check-sources.mjs . && python3 scripts/check-simulateurs.py . && python3 scripts/check-hreflang.py . && python3 scripts/check-anglais.py . && python3 scripts/check-portefeuille.py . && python3 scripts/check-cookies.py . && node scripts/check-url-propre.mjs . && node scripts/check-premier-ecran.mjs . && node scripts/check-droits.mjs . && node scripts/check-copie.mjs . && node scripts/check-nombres.mjs . && node scripts/check-contraste.mjs . && node scripts/check-saisie.mjs . && python3 scripts/check-regles.py . && python3 scripts/check-motcle.py .
+
+
+> sapetrolprice.com@0.1.0 build
+> astro build && node scripts/typo-nbsp.mjs && python3 scripts/check-snippets.py dist
+
+11:54:57 [types] Generated 31ms
+11:54:57 [build] output: "static"
+11:54:57 [build] mode: "static"
+11:54:57 [build] directory: /Users/mottalib/Documents/GitHub/a-publier/Mottalib-10M/sapetrolprice.com/dist/
+11:54:57 [build] Collecting build info...
+11:54:57 [build] ✓ Completed in 48ms.
+11:54:57 [build] Building static entrypoints...
+11:54:59 [vite] ✓ built in 1.41s
+11:54:59 [vite] ✓ built in 706ms
+11:54:59 [build] Rearranging server assets...
+
+ generating static routes 
+11:54:59   ├─ /404.html (+14ms) 
+11:54:59   ├─ /embed/petrol-price/index.html (+21ms) 
+11:55:00   ├─ /en/about/index.html (+7ms) 
+11:55:00   ├─ /en/contact/index.html (+5ms) 
+11:55:00   ├─ /en/cookies/index.html (+6ms) 
+11:55:00   ├─ /en/editorial-policy/index.html (+4ms) 
+11:55:00   ├─ /en/legal-notice/index.html (+4ms) 
+11:55:00   ├─ /en/method/index.html (+7ms) 
+11:55:00   ├─ /en/privacy/index.html (+5ms) 
+11:55:00   ├─ /en/widget/index.html (+3ms) 
+11:55:00   ├─ /en/index.html (+15ms) 
+11:55:00   ├─ /en/petrol-price-december-2026/index.html (+11ms) 
+11:55:00   ├─ /en/petrol-price-november-2026/index.html (+5ms) 
+11:55:00   ├─ /en/petrol-price-history/index.html (+8ms) 
+11:55:00   ├─ /en/fuel-price-coast-vs-inland/index.html (+4ms) 
+11:55:00   ├─ /en/petrol-95-price/index.html (+5ms) 
+11:55:00   ├─ /en/petrol-93-price/index.html (+8ms) 
+11:55:00   ├─ /en/diesel-price/index.html (+5ms) 
+11:55:00   ├─ /en/paraffin-price/index.html (+5ms) 
+11:55:00   ├─ /en/lpg-gas-price/index.html (+4ms) 
+11:55:00   ├─ /en/fuel-cost-per-km/index.html (+3ms) 
+11:55:00   ├─ /en/diesel-vs-petrol-price/index.html (+4ms) 
+11:55:00   ├─ /en/what-is-in-a-litre-of-petrol/index.html (+4ms) 
+11:55:00   ├─ /en/fuel-levy/index.html (+4ms) 
+11:55:00   ├─ /en/slate-levy/index.html (+4ms) 
+11:55:00   ├─ /en/basic-fuel-price/index.html (+5ms) 
+11:55:00   ├─ /en/rand-and-oil-price/index.html (+5ms) 
+11:55:00   ├─ /en/repo-rate/index.html (+4ms) 
+11:55:00   ├─ /en/prime-rate/index.html (+5ms) 
+11:55:00   ├─ /en/bond-repayment/index.html (+3ms) 
+11:55:00   ├─ /en/mpc-meeting-dates/index.html (+6ms) 
+11:55:00   ├─ /en/interest-rates-south-africa/index.html (+5ms) 
+11:55:00   ├─ /llms.txt (+1ms) 
+11:55:00   ├─ /index.html (+10ms) 
+11:55:00 ✓ Completed in 257ms.
+
+11:55:00 [build] ✓ Completed in 2.42s.
+11:55:00 [@astrojs/sitemap] `sitemap-index.xml` created at `dist`
+11:55:00 [build] 33 page(s) built in 2.49s
+11:55:00 [build] Complete!
+typo-nbsp: 0 espace(s) rendue(s) insécable(s) dans 0 page(s)
+check-snippets : 24 pages indexables, titres 50-60, descriptions 150-160, ordre des mots et unicite conformes
+
+ RUN  v4.1.12 /Users/mottalib/Documents/GitHub/a-publier/Mottalib-10M/sapetrolprice.com
+
+
+ Test Files  3 passed (3)
+      Tests  186 passed (186)
+   Start at  11:55:01
+   Duration  655ms (transform 540ms, setup 0ms, import 804ms, tests 167ms, environment 0ms)
+
+typo-nbsp: 0 espace(s) à corriger dans 0 page(s)
+typo-nbsp: 0 décimale(s) avec un point dans une langue à virgule
+typo-nbsp: 0 pourcentage(s) écrit(s) mal placé(s) : « 20 % » là où la langue écrit « 20% », ou après le nombre en turc, qui écrit « %20 » (souvent dans un composant React : corriger la source)
+typo-nbsp: 0 mot(s) français sans accent ou avec un accent faux
+Identité légale complète, aucune mention provisoire.
+. : 24 pages indexables, 0 à corriger
+
+. : 24 pages comparées, 0 paire(s) trop proches, 0 question(s) recyclée(s)
+
+. : 32 pages, 0 à corriger, 0 question(s) de FAQ recyclée(s)
+. : 36 pages, 0 cible(s) morte(s), 0 lien(s) a corriger, 0 route(s) vide(s)
+check-layout: 24 pages × 4 largeurs, 0 défaut(s)
+check-sources: 35 source(s), 0 morte(s), 0 injoignable(s), 0 bloquée(s) aux robots
+. : 22 page(s) de contenu, 0 sans simulateur
+. : 24 pages, 0 avec hreflang, 0 à corriger
+. : site anglophone, contrôle sans objet.
+check-portefeuille : 0 paragraphe(s) copiés, 0 site(s) du portefeuille liés, 60 sites comparés.
+check-cookies : 0 défaut (34 pages, Clarity sur 31, GA4 G-GJC0RFNHPE sur 31, langues en)
+check-url-propre: 24 page(s) du sitemap, 0 défaut(s)

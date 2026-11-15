@@ -7,8 +7,8 @@ export const rand = (x: number) => `${x < -0.5 ? '-' : ''}R${formatNumber(Math.a
 export const rc = (x: number) => `${x < -0.005 ? '-' : ''}R${formatNumber(Math.abs(x), 2)}`;
 /** A price in cents per litre shown in rand a litre: 3024 -> R30.24. */
 export const rpl = (cpl: number) => rc(cpl / 100);
-/** A change of the PRICE in cents: "+128c", "-232c" (rounded to the cent like the statements). Only for a price move:
- *  never for a price, a levy or a recovery (naive testers 2026-11-14: "+382c" read as a rise while petrol fell). */
+/** A change of the PRICE in cents: "+128c", "-232c" (rounded to the cent like the statements). For a price move or a signed gap
+ *  ("diesel minus petrol": -267c when diesel is cheaper; naive testers tour 2, 2026-11-14): never for a price, a levy or a recovery (naive testers 2026-11-14: "+382c" read as a rise while petrol fell). */
 export const dc = (c: number) => `${c > 0.5 ? '+' : c < -0.5 ? '-' : ''}${formatNumber(Math.abs(Math.round(c)), 0)}c`;
 /** A change in rand a litre: "+R1.28", "-R2.32". */
 export const dr = (c: number) => `${c > 0.5 ? '+' : c < -0.5 ? '-' : ''}R${formatNumber(Math.abs(c) / 100, 2)}`;

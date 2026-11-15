@@ -92,6 +92,17 @@ describe('signs of the price move', () => {
     const t = (k: string) => { const s = getTool(k); return s.run(Object.fromEntries(s.inputs.map((i) => [i.id, i.def])) as never); };
     expect(t('recovery').value).toBe(`${dc(E.forecast({ product: 'p95' }).change)} a litre`);
   });
+  it('a signed gap keeps its minus: diesel cheaper than petrol, levy cut', () => {
+    expect(dc(22.45 * 100 - 25.12 * 100)).toBe('-267c');
+    expect(dc(113.94 - 157.74)).toBe('-44c');
+    const h = E.HISTORY[0];
+    expect(h.d50[0] - h.p95[0]).toBeLessThan(0);
+    const dir = new URL('../dist/', import.meta.url);
+    let html = '';
+    try { html = readFileSync(new URL('en/diesel-vs-petrol-price/index.html', dir), 'utf8') + readFileSync(new URL('en/slate-levy/index.html', dir), 'utf8'); } catch { return; }
+    expect(html).toContain(`>${dc(h.d50[0] - h.p95[0])}<`);
+    expect(html).toContain('>-44c<');
+  });
   it('no page text puts a "+" before a recovery, a levy or a "down by"', () => {
     const dir = new URL('../dist/', import.meta.url);
     let html = '';

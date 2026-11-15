@@ -24,7 +24,7 @@ export const KIT = {
   E, F, S, EX, P, month, p93At,
   BT: { p95: bt95, d50: bt50, mae95: E.meanAbs(bt95.map((r) => r.projected - r.final)), maeAvg95: E.meanAbs(bt95.map((r) => r.avg - r.final)), mae50: E.meanAbs(bt50.map((r) => r.projected - r.final)), maeAvg50: E.meanAbs(bt50.map((r) => r.avg - r.final)) },
   rand, rc, rpl, dc, dr, num,
-  /** Signs (naive testers 2026-11-14): dc/dr for a price move only; c for an amount ("279c"); rec for a recovery
+  /** Signs (naive testers 2026-11-14): dc/dr for a price move or a signed gap (diesel minus petrol, change of a levy); c for an amount ("279c"); rec for a recovery
    *  ("382c over-recovery"); eff/recEff for what a part does to the price ("lowers the price by 382c"). */
   c: cents, rands, rec, recS: recShort, eff: effect, recEff: recEffect, moveWords, pct, day, month_: monthName, mon: monthOnly,
   dec: (x: number, d = 2) => formatNumber(x, d),

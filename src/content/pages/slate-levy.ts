@@ -20,7 +20,7 @@ export default definePage({
   ],
   body: (h) => `
 <h2>Slate levy month by month in 2026</h2>
-${h.table(['From', 'Slate levy', 'Change', 'On 150 litres'], M.map((m, i) => [K.day(m.effective), K.c(m.slate), i ? K.c(m.slate - M[i - 1].slate) : 'none', K.rand(K.tank(150, m.slate))]), 'Cents a litre, petrol and diesel alike. CEF media statements of 2026.', ['l', 'r', 'r', 'r'])}
+${h.table(['From', 'Slate levy', 'Change', 'On 150 litres'], M.map((m, i) => [K.day(m.effective), K.c(m.slate), i ? K.dc(m.slate - M[i - 1].slate) : 'none', K.rand(K.tank(150, m.slate))]), 'Cents a litre, petrol and diesel alike. CEF media statements of 2026.', ['l', 'r', 'r', 'r'])}
 <p>The statement of January 2026 is explicit: “the Slate Levy on petrol and diesel will remain at 0.00 c/l”. That held to April. The under-recoveries that built up in March were too large for the price changes to absorb, and the slate balance went below the R500 million threshold. The levy that followed is the industry being paid back, a few cents a litre at a time.</p>
 <h2>How the self-adjusting slate levy mechanism works</h2>
 <p>Each statement reports the cumulative balance of the slate at the end of the previous month. The mechanism, introduced on 7 January 2009 and revised on 7 September 2022, ties the levy to that balance: the deeper the deficit, the higher the levy, by steps set in the Department’s published rules. When the balance comes back above the threshold, the levy returns to zero. Because over-recoveries also flow into the slate, a month when prices are above cost helps reduce the levy that follows.</p>
