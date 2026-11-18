@@ -1,6 +1,6 @@
 {
  "_doc": "Figures read in the Central Energy Fund documents listed in `doc` (media statements of 2026 and daily Basic Fuel Price sheets), by scripts/data/build-cef.py. Cents per litre (LPG: cents per kilogram). Change: + = increase. Recovery: + = over-recovery (price falls next month), - = under-recovery.",
- "built": "2026-11-17",
+ "built": "2026-11-18",
  "statementsPage": "https://cefgroup.co.za/2026-3/",
  "months": [
   {
@@ -1659,11 +1659,11 @@
    "doc": "https://cefgroup.co.za/wp-content/uploads/2026/10/Daily-12-10-2026.pdf"
   },
   {
-   "date": "2026-11-16",
-   "zarusd": 16.9323,
+   "date": "2026-11-17",
+   "zarusd": 16.9317,
    "window": [
     "2026-10-30",
-    "2026-11-16"
+    "2026-11-17"
    ],
    "inForce": {
     "p95": 3024.0,
@@ -1674,11 +1674,11 @@
     "smnrp": 3548.0
    },
    "bfp": {
-    "p95": 1405.374,
-    "p93": 1389.239,
-    "d50": 2156.52,
-    "d005": 2181.245,
-    "ip": 2100.881
+    "p95": 1370.848,
+    "p93": 1354.713,
+    "d50": 2073.751,
+    "d005": 2095.534,
+    "ip": 2028.039
    },
    "contribution": {
     "p95": 1844.33,
@@ -1688,34 +1688,34 @@
     "ip": 2448.128
    },
    "day": {
-    "p95": 438.956,
-    "p93": 418.091,
-    "d50": 199.11,
-    "d005": 248.785,
-    "ip": 347.247
+    "p95": 473.482,
+    "p93": 452.617,
+    "d50": 281.879,
+    "d005": 334.496,
+    "ip": 420.089
    },
    "average": {
-    "p95": 339.911,
-    "p93": 315.145,
-    "d50": 122.349,
-    "d005": 161.561,
-    "ip": 216.526
+    "p95": 350.186,
+    "p93": 325.719,
+    "d50": 134.621,
+    "d005": 174.864,
+    "ip": 232.184
    },
    "fromProduct": {
-    "p95": 344.392,
-    "p93": 319.588,
-    "d50": 129.007,
-    "d005": 168.333,
-    "ip": 223.078
+    "p95": 356.873,
+    "p93": 332.349,
+    "d50": 144.57,
+    "d005": 184.978,
+    "ip": 241.97
    },
    "fromRand": {
-    "p95": -4.481,
-    "p93": -4.444,
-    "d50": -6.658,
-    "d005": -6.772,
-    "ip": -6.552
+    "p95": -6.687,
+    "p93": -6.63,
+    "d50": -9.949,
+    "d005": -10.114,
+    "ip": -9.786
    },
-   "doc": "https://cefgroup.co.za/wp-content/uploads/2026/11/Daily-16-11-2026.pdf"
+   "doc": "https://cefgroup.co.za/wp-content/uploads/2026/11/Daily-17-11-2026.pdf"
   }
  ]
 }
